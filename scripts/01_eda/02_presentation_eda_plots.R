@@ -148,11 +148,25 @@ p2 <- weekly %>%
   theme_soosh() +
   labs(
     x = NULL,
-    y = 'Effort (hours)'
+    y = 'Hours of fishing'
+  )
+
+# Effort - number of fishers
+p3 <- weekly %>% 
+  ggplot() +
+  # geom_vline(xintercept=year_change, colour='darkgrey') +
+  geom_line(aes(y = eff_num_fisher_tot, x = date), colour='darkgrey', alpha=0.9) +
+  geom_point(aes(y = eff_num_fisher_tot, x = date), colour='black', stroke=0.3,
+             alpha=0.2, size=0.3) +
+  geom_vline(xintercept = closed_season, colour='red', linetype='dashed') +
+  theme_soosh() +
+  labs(
+    x = NULL,
+    y = 'Number of fishers'
   )
 
 # CPUE
-p3 <- weekly %>% 
+p4 <- weekly %>% 
   mutate(cpue = catch_kg_tot/eff_h_tot) %>% 
   ggplot() +
   # geom_vline(xintercept=year_change, colour='darkgrey') +
@@ -166,12 +180,21 @@ p3 <- weekly %>%
     y = 'CPUE'
   )
 
-# Combined plot
-mosaic <- p1/p2/p3
+# Combining plots and exporting
+mosaic_hours <- p1/p2/p4
+ggsave(file.path(out_dir, 'cat_hrseff_cpue_ts.png'), 
+       mosaic_hours, 
+       width=7, height=5, dpi=300)
 
-# Writing to disk
-ggsave(file.path(out_dir, 'cat_eff_cpue_ts.png'), 
-       mosaic, 
+# Combined plot
+mosaic_fishers <- p1/p3/p4
+ggsave(file.path(out_dir, 'cat_fisheff_cpue_ts.png'), 
+       mosaic_fishers, 
+       width=7, height=5, dpi=300)
+
+mosaic_all <- p1/p2/p3/p4
+ggsave(file.path(out_dir, 'cat_alleff_cpue_ts.png'), 
+       mosaic_all, 
        width=7, height=5, dpi=300)
 
 # Relationships between each type of effort and catch ----------
@@ -194,6 +217,7 @@ p2 <- weekly %>%
   geom_point(colour='darkgrey', alpha=0.8) +
   geom_smooth(method = 'lm', colour = 'firebrick', alpha=0.6) +
   theme_soosh() +
+  theme(axis.text.y = element_blank()) +
   ylim(-10, 1250) +
   labs(
     y = NULL,
