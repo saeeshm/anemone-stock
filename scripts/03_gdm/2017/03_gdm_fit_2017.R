@@ -46,6 +46,7 @@ base_rdpath <- file.path(out_dir, 'gdm_base.Rdata')
 
 # Path to folder where model results will be saved as Rdata files
 mod_dir <- file.path(out_dir, 'models')
+dir.create(mod_dir)
 
 # Creating a sub-folder for GDM plots from pulse-hypothesis models
 gdm_plot_dir <- file.path(out_dir, 'plots', 'gdm')
@@ -59,6 +60,7 @@ paramdf <- read_csv(param_path)
 
 # Hypothesis dataframe
 hypdf <- read_excel(hypdf_path) %>% 
+  select(type, in_week, out_week, isStrong) %>% 
   group_by(type) %>% 
   mutate(grpid = 1:n()) %>% 
   ungroup() %>% 
@@ -87,14 +89,14 @@ params <- setNames(paramdf$value, paramdf$param)
 # ==== Fitting models from pulse hypotheses ====
 
 # Iterating over each hypothesis using its unique id
-walk(hypdf$id, ~{
+walk(hypdf$modname, ~{
   # Getting the created name for this model
-  modname <- hypdf %>% filter(id == .x) %>% pull(modname)
-  print(paste('Hypothesis:', modname))
+  mod <- .x
+  print(paste('Hypothesis:', mod))
   
   # Creating an output Rdata path from this model name - this is where results
   # will be stored
-  out_rdpath <- file.path(mod_dir, paste0(modname, '.Rdata'))
+  out_rdpath <- file.path(mod_dir, paste0(mod, '.Rdata'))
   
   # If the model object already exists, skipping
   if(file.exists(out_rdpath)) {
@@ -103,11 +105,11 @@ walk(hypdf$id, ~{
   }
   
   # Getting number of pulses in this hypothesis
-  pulse <- hypdf %>% filter(id == .x) %>% pull(type)
+  pulse <- hypdf %>% filter(modname == mod) %>% pull(type)
   
   # Getting pulses weeks for this hypothesis
-  in_weeks <- hypdf %>% filter(id == .x) %>% pull(in_week)
-  out_weeks <- hypdf %>% filter(id == .x) %>% pull(out_week)
+  in_weeks <- hypdf %>% filter(modname == mod) %>% pull(in_week)
+  out_weeks <- hypdf %>% filter(modname == mod) %>% pull(out_week)
   # Converting to numeric vectors
   in_weeks <- as.numeric(str_split(in_weeks, ',')[[1]])
   out_weeks <- as.numeric(str_split(out_weeks, ',')[[1]])
@@ -172,7 +174,7 @@ walk(hypdf$id, ~{
     fits <- .x
     iwalk(fits, ~{
       # Creating filename for this plot
-      fname <- paste0(modname, '_', dist_name, '_', .y, '.png')
+      fname <- paste0(mod, '_', dist_name, '_', .y, '.png')
       # print(fname)
       # Creating plot and saving to disk
       png(file=file.path(gdm_plot_dir, fname))

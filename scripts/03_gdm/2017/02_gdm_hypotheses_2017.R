@@ -350,6 +350,12 @@ neg_weeks_strong <- anmdat %>%
   pull(time.step) %>% 
   unique()
 
+# Examining
+pos_weeks
+pos_weeks_strong
+neg_weeks
+neg_weeks_strong
+
 # ==== Constructing the hypothesis table from candidates ====
 
 # Calling the helper function to construct the hypothesis table from these weeks
@@ -362,7 +368,7 @@ hyp_tab <- make_hyp_table(
   filterio=F)
 
 # Identifying which ones may be strong hypotheses - those where all candidates
-# consist of the strong choices
+# consist of strong choices
 hyp_tab <- hyp_tab %>% 
   rowwise() %>% 
   mutate(isStrong = all(as.numeric(str_split(in_week, ',')[[1]]) %in% pos_weeks_strong) & 
